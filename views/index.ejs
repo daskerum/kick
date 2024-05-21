@@ -1,0 +1,11 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Twitch Chat GPT Bot Control Panel</title>
+</head>
+<body>
+    <h1>Bot Configuration</h1>
+    <pre><%= JSON.stringify(config, null, 2) %></pre>
+    <h1>Bot Status: <%= botActive ? 'Active' : 'Inactive' %></h1>
+</body>
+</html>
