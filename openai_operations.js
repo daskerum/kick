@@ -127,6 +127,13 @@ class OpenAIOperations {
             if (response.choices && response.choices.length > 0) {
                 let agent_response = response.choices[0].message.content;
                 agent_response += ` ${this.link}`; // Ensure the link is added
+
+                // Mesajı 500 karakter ile sınırlama
+                if (agent_response.length > 500) {
+                    console.log("Timed message response exceeds 500 characters, trimming response.");
+                    agent_response = agent_response.substring(0, 497) + '...';
+                }
+
                 console.log(`Timed Message Response: ${agent_response}`);
                 return agent_response;
             } else {
@@ -153,7 +160,15 @@ class OpenAIOperations {
         if (commandChance < this.commandChance) {
             this.commandCooldowns.set(user.username, Date.now());
             const prompt = `${this.chatBotPrompt}\nUser: ${text}\nAssistant:`;
-            return await this.make_openai_call(prompt);
+            const response = await this.make_openai_call(prompt);
+
+            // Mesajı 500 karakter ile sınırlama
+            if (response && response.length > 500) {
+                console.log("Command response exceeds 500 characters, trimming response.");
+                response = response.substring(0, 497) + '...';
+            }
+
+            return response;
         } else {
             console.log("Command not executed due to chance setting.");
             return null;
