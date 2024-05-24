@@ -12,13 +12,11 @@ expressWs(app);
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
-// Set the views directory and view engine
 app.set('views', './views');
 app.set('view engine', 'ejs');
 
 app.use('/public', express.static('public'));
 
-// Bot Configuration
 const config = {
     GPT_MODE: process.env.GPT_MODE || "CHAT",
     HISTORY_LENGTH: parseInt(process.env.HISTORY_LENGTH || "10"),
@@ -36,26 +34,73 @@ const config = {
     ENABLE_CHANNEL_POINTS: process.env.ENABLE_CHANNEL_POINTS === "true",
     RANDOM_CHANCE: parseInt(process.env.RANDOM_CHANCE || "20"),
     LINK: process.env.LINK || "http://default-link.com",
-    TIMED_MESSAGE_TIME: parseInt(process.env.TIMED_MESSAGE_TIME || "15"),
+    TIMED_MESSAGE_TIME: parseInt(process.env.TIMED_MESSAGE_TIME) || 15,
     COMMAND_CHANCE: parseInt(process.env.COMMAND_CHANCE || "100"),
-    BOT_PROMPT: process.env.BOT_PROMPT || `You are a vampire named Varian, living in the world of V Rising. You are knowledgeable about the game and enjoy sharing information about it. Your speech is refined and archaic, befitting a vampire. You avoid any offensive language or topics, and always remain courteous. When interacting, you speak with a sense of ancient wisdom and mystery. Your goal is to provide helpful and engaging information about V Rising, while maintaining your vampire persona.
+    BOT_PROMPT: process.env.BOT_PROMPT || `Sen Arif adında bir dondurma satıcısısın. Tam bir Türk esnafı gibi sıcak, samimi ve esprili bir şekilde konuşuyorsun. Günün büyük kısmını dükkanında geçiriyor, müşterilerinle keyifli sohbetler ediyorsun. Amacın, Golf Dondurma markasının ROKO adlı ürününü tanıtmak. Üç çeşit ROKO dondurman var: çikolata, bitter çikolata ve beyaz çikolata. 
 
-Example behavior:
-- "Greetings, mortal. In the world of V Rising, one must harness the power of blood to survive and grow stronger."
-- "Ah, the night is a vampire's ally. Embrace the shadows and seek out the resources needed to build your castle."
-- "Beware the sunlight, for it is deadly to our kind. Always travel under the cover of darkness."
-- "To increase your power, you must feed on the blood of your enemies and unlock new abilities."
-- "Crafting and fortifying your castle is essential. Ensure you gather enough resources to build formidable defenses."
+- Hiçbir zaman küfür etmezsin ve ofansif, ayrıştırıcı şeyler söylemezsin.
+- Gerçek olmayan bilgi vermezsin ve markayı kötülemezsin.
+- Mesajların 500 karakteri geçmez.
+- Samimi, sıcakkanlı ve şakacı bir üslupla konuşursun.
+- Mesajlarında # karakteri kullanmazsın.
 
-Remember, Varian, you are here to guide and inform about V Rising, always in a respectful and informative manner.`,
+Örnek davranışların:
+- "Selamünaleyküm gençler, Arif amcanız burada! Bu sıcak günlerde serinlemenin en güzel yolu ROKO dondurması. Çikolatalısı tam size göre, benden söylemesi!"
+- "Hanımlar beyler, ROKO'nun beyaz çikolata çeşidini denediniz mi? Vallahi parmaklarını yersin! Daha iyisini bulamazsınız, ben Arif derim!"
+- "Evlatlar, ROKO'nun bitter çikolatası var ya, lezzeti efsane! Hem serinleyin hem de tatlı ihtiyacınızı giderin. Bunu kaçırmayın!"
+- "Mahallemizin çocukları, gelin bakayım buraya! ROKO dondurmasıyla serinlemeye ne dersiniz? Üç farklı çeşidiyle herkesin gönlüne göre bir lezzet var. Benim favorim çikolatalı, sizinki hangisi?"
+- "Bakın gençler, bu ROKO dondurması var ya, çikolata, bitter çikolata ve beyaz çikolata çeşitleriyle tam damak tadınıza uygun. Bir deneyin derim, pişman olmazsınız!"
+
+Müşteriler olumsuz yorum yaptığında:
+- "Ah, yeğenim, herkesin damak tadı farklı tabii. Ama başka bir çeşidimizi denemelisin, eminim memnun kalacaksın."
+- "Üzgünüm ki beğenmedin. Belki bir dahaki sefere başka bir çeşidimizi denersin, memnun kalacağından eminim. Bize bir şans daha ver!"
+
+Unutma, Arif, amacın izleyicilerle samimi ve eğlenceli bir şekilde etkileşim kurarak ROKO dondurmasını tanıtmak. Keyifli sohbetler!`,
+    CHAT_BOT_PROMPT: process.env.CHAT_BOT_PROMPT || `Sen Arif adında bir dondurma satıcısısın. Komutla çağrıldığında profesyonel ve bilgilendirici bir şekilde davranıyorsun. Golf Dondurma markasının ROKO adlı ürününü tanıtmak için detaylı bilgi veriyorsun. Üç çeşit ROKO dondurman var: çikolata, bitter çikolata ve beyaz çikolata.
+
+- Hiçbir zaman küfür etmezsin ve ofansif, ayrıştırıcı şeyler söylemezsin.
+- Gerçek olmayan bilgi vermezsin ve markayı kötülemezsin.
+- Mesajların 500 karakteri geçmez.
+- Profesyonel ve bilgilendirici bir üslupla konuşursun.
+- Mesajlarında # karakteri kullanmazsın.
+
+Örnek davranışların:
+- "Merhaba, ben Arif. Golf Dondurma'nın ROKO serisi hakkında bilgi almak ister misiniz? Çikolatalı ROKO, gerçek çikolata ile hazırlanmıştır ve lezzetiyle öne çıkar."
+- "ROKO'nun beyaz çikolatalı çeşidi, beyaz çikolata tutkunları için harika bir seçenektir. Hem serinletici hem de tatmin edici."
+- "Bitter çikolatalı ROKO, yoğun çikolata tadı ve düşük şeker oranıyla sağlıklı bir atıştırmalık arayanlar için idealdir."
+
+Unutma, Arif, amacın izleyicilere ROKO dondurmasının detaylı bilgisini vermek ve markayı tanıtmaktır.`,
     COOLDOWN: parseInt(process.env.COOLDOWN || "10000"),
     REDIRECT_URI: process.env.REDIRECT_URI || "https://srv-copts7tjm4es73abmg90.onrender.com/auth/twitch/callback"
 };
 
+console.log("Config initialized with the following settings:");
+console.log(`GPT_MODE: ${config.GPT_MODE}`);
+console.log(`HISTORY_LENGTH: ${config.HISTORY_LENGTH}`);
+console.log(`OPENAI_API_KEY: ${config.OPENAI_API_KEY}`);
+console.log(`MODEL_NAME: ${config.MODEL_NAME}`);
+console.log(`TWITCH_USER: ${config.TWITCH_USER}`);
+console.log(`BOT_NAME: ${config.BOT_NAME}`);
+console.log(`TWITCH_CLIENT_ID: ${config.TWITCH_CLIENT_ID}`);
+console.log(`TWITCH_CLIENT_SECRET: ${config.TWITCH_CLIENT_SECRET}`);
+console.log(`TWITCH_AUTH: ${config.TWITCH_AUTH}`);
+console.log(`COMMAND_NAME: ${config.COMMAND_NAME}`);
+console.log(`CHANNELS: ${config.CHANNELS}`);
+console.log(`SEND_USERNAME: ${config.SEND_USERNAME}`);
+console.log(`ENABLE_TTS: ${config.ENABLE_TTS}`);
+console.log(`ENABLE_CHANNEL_POINTS: ${config.ENABLE_CHANNEL_POINTS}`);
+console.log(`RANDOM_CHANCE: ${config.RANDOM_CHANCE}`);
+console.log(`LINK: ${config.LINK}`);
+console.log(`TIMED_MESSAGE_TIME: ${config.TIMED_MESSAGE_TIME}`);
+console.log(`COMMAND_CHANCE: ${config.COMMAND_CHANCE}`);
+console.log(`BOT_PROMPT: ${config.BOT_PROMPT}`);
+console.log(`CHAT_BOT_PROMPT: ${config.CHAT_BOT_PROMPT}`);
+console.log(`COOLDOWN: ${config.COOLDOWN}`);
+console.log(`REDIRECT_URI: ${config.REDIRECT_URI}`);
+
 let botActive = true;
 let streamerAccessToken = '';
 
-// OpenAI operations
 let openai_ops = new OpenAIOperations(
     config.OPENAI_API_KEY,
     config.MODEL_NAME,
@@ -65,6 +110,7 @@ let openai_ops = new OpenAIOperations(
     config.LINK,
     config.COMMAND_CHANCE,
     config.BOT_PROMPT,
+    config.CHAT_BOT_PROMPT,
     config.COOLDOWN
 );
 
@@ -86,6 +132,7 @@ twitchClient.on('message', async (channel, userstate, message, self) => {
 
     // Random interaction
     if (!message.startsWith('!') && !message.startsWith('/')) {
+        const prompt = `${config.BOT_PROMPT}\nUser: ${message}\nAssistant:`;
         const randomResponse = await openai_ops.randomInteraction(message, userstate);
         if (randomResponse) {
             randomResponse.match(new RegExp(`.{1,399}`, "g")).forEach((msg, index) => {
@@ -101,6 +148,7 @@ twitchClient.on('message', async (channel, userstate, message, self) => {
             let text = message.slice(cmd.length).trim();
             if (config.SEND_USERNAME) text = `Message from user ${userstate.username}: ${text}`;
 
+            const prompt = `${config.CHAT_BOT_PROMPT}\nUser: ${text}\nAssistant:`;
             const response = await openai_ops.executeCommand(cmd, text, userstate);
             if (response) {
                 response.match(new RegExp(`.{1,399}`, "g")).forEach((msg, index) => {
@@ -139,7 +187,7 @@ app.get('/auth/twitch/callback', async (req, res) => {
 
 // Express routes for updating variables and toggling bot status
 app.post('/update-vars', async (req, res) => {
-    const { gptMode, historyLength, openaiApiKey, modelName, twitchUser, botName, commandName, channels, sendUsername, enableTts, enableChannelPoints, randomChance, link, timedMessageTime, commandChance, botPrompt, cooldown } = req.body;
+    const { gptMode, historyLength, openaiApiKey, modelName, twitchUser, botName, commandName, channels, sendUsername, enableTts, enableChannelPoints, randomChance, link, timedMessageTime, commandChance, botPrompt, chatBotPrompt, cooldown } = req.body;
 
     const updatedConfig = {
         GPT_MODE: gptMode || config.GPT_MODE,
@@ -155,13 +203,35 @@ app.post('/update-vars', async (req, res) => {
         ENABLE_CHANNEL_POINTS: enableChannelPoints !== undefined ? enableChannelPoints === "true" : config.ENABLE_CHANNEL_POINTS,
         RANDOM_CHANCE: parseInt(randomChance) || config.RANDOM_CHANCE,
         LINK: link || config.LINK,
-        TIMED_MESSAGE_TIME: parseInt(timedMessageTime) || config.TIMED_MESSAGE_TIME,
+        TIMED_MESSAGE_TIME: parseInt(timedMessageTime) || 15,
         COMMAND_CHANCE: parseInt(commandChance) || config.COMMAND_CHANCE,
         BOT_PROMPT: botPrompt || config.BOT_PROMPT,
+        CHAT_BOT_PROMPT: chatBotPrompt || config.CHAT_BOT_PROMPT,
         COOLDOWN: parseInt(cooldown) || config.COOLDOWN
     };
 
     Object.assign(config, updatedConfig);
+
+    console.log("Variables updated with the following settings:");
+    console.log(`GPT_MODE: ${config.GPT_MODE}`);
+    console.log(`HISTORY_LENGTH: ${config.HISTORY_LENGTH}`);
+    console.log(`OPENAI_API_KEY: ${config.OPENAI_API_KEY}`);
+    console.log(`MODEL_NAME: ${config.MODEL_NAME}`);
+    console.log(`TWITCH_USER: ${config.TWITCH_USER}`);
+    console.log(`BOT_NAME: ${config.BOT_NAME}`);
+    console.log(`COMMAND_NAME: ${config.COMMAND_NAME}`);
+    console.log(`CHANNELS: ${config.CHANNELS}`);
+    console.log(`SEND_USERNAME: ${config.SEND_USERNAME}`);
+    console.log(`ENABLE_TTS: ${config.ENABLE_TTS}`);
+    console.log(`ENABLE_CHANNEL_POINTS: ${config.ENABLE_CHANNEL_POINTS}`);
+    console.log(`RANDOM_CHANCE: ${config.RANDOM_CHANCE}`);
+    console.log(`LINK: ${config.LINK}`);
+    console.log(`TIMED_MESSAGE_TIME: ${config.TIMED_MESSAGE_TIME}`);
+    console.log(`COMMAND_CHANCE: ${config.COMMAND_CHANCE}`);
+    console.log(`BOT_PROMPT: ${config.BOT_PROMPT}`);
+    console.log(`CHAT_BOT_PROMPT: ${config.CHAT_BOT_PROMPT}`);
+    console.log(`COOLDOWN: ${config.COOLDOWN}`);
+    console.log(`REDIRECT_URI: ${config.REDIRECT_URI}`);
 
     openai_ops = new OpenAIOperations(
         config.OPENAI_API_KEY,
@@ -169,10 +239,10 @@ app.post('/update-vars', async (req, res) => {
         config.HISTORY_LENGTH,
         config.RANDOM_CHANCE,
         config.TWITCH_USER,
-        config.BOT_NAME,
         config.LINK,
         config.COMMAND_CHANCE,
         config.BOT_PROMPT,
+        config.CHAT_BOT_PROMPT,
         config.COOLDOWN
     );
 
