@@ -37,3 +37,5 @@ services:
         value: <random-init>
       - key: BOT_PROMPT
         value: <bot-prompt>
+      - key: CHAT_BOT_PROMPT
+        value: <chat-bot-prompt>
