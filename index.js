@@ -138,6 +138,11 @@ twitchClient.on('message', async (channel, userstate, message, self) => {
         const prompt = `${config.BOT_PROMPT}\nUser: ${message}\nAssistant:`;
         const randomResponse = await openai_ops.randomInteraction(message, userstate);
         if (randomResponse) {
+            // Mesajı 500 karakter ile sınırlama
+            if (randomResponse.length > 500) {
+                console.log("Random interaction response exceeds 500 characters, trimming response.");
+                randomResponse = randomResponse.substring(0, 497) + '...';
+            }
             randomResponse.match(new RegExp(`.{1,399}`, "g")).forEach((msg, index) => {
                 setTimeout(() => twitchClient.say(channel, msg), 1000 * index);
             });
@@ -154,6 +159,11 @@ twitchClient.on('message', async (channel, userstate, message, self) => {
             const prompt = `${config.CHAT_BOT_PROMPT}\nUser: ${text}\nAssistant:`;
             const response = await openai_ops.executeCommand(cmd, text, userstate);
             if (response) {
+                // Mesajı 500 karakter ile sınırlama
+                if (response.length > 500) {
+                    console.log("Command response exceeds 500 characters, trimming response.");
+                    response = response.substring(0, 497) + '...';
+                }
                 response.match(new RegExp(`.{1,399}`, "g")).forEach((msg, index) => {
                     setTimeout(() => twitchClient.say(channel, msg), 1000 * index);
                 });
@@ -270,6 +280,11 @@ const timedMessageJob = new CronJob(`*/${config.TIMED_MESSAGE_TIME} * * * *`, as
     for (const channel of config.CHANNELS) {
         const message = await openai_ops.make_timed_message();
         if (message) {
+            // Mesajı 500 karakter ile sınırlama
+            if (message.length > 500) {
+                console.log("Timed message exceeds 500 characters, trimming response.");
+                message = message.substring(0, 497) + '...';
+            }
             message.match(new RegExp(`.{1,399}`, "g")).forEach((msg, index) => {
                 setTimeout(() => twitchClient.say(channel, msg), 1000 * index);
             });
