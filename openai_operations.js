@@ -1,7 +1,7 @@
 import OpenAI from "openai";
 
 class OpenAIOperations {
-    constructor(openai_key, model_name = "gpt-3.5-turbo", history_length, randomChance, twitchUser, link, commandChance, botPrompt, cooldownPeriod) {
+    constructor(openai_key, model_name = "gpt-3.5-turbo", history_length, randomChance, twitchUser, link, commandChance, botPrompt, chatBotPrompt, cooldownPeriod) {
         this.messages = [{ role: "system", content: botPrompt }];
         this.api_key = openai_key;
         this.model_name = model_name;
@@ -10,12 +10,25 @@ class OpenAIOperations {
         this.twitchUser = twitchUser;
         this.link = link;
         this.lastCalled = Date.now();
-        this.cooldownPeriod = cooldownPeriod; // COOLDOWN mechanism managed here
+        this.cooldownPeriod = cooldownPeriod;
         this.openai = new OpenAI({ apiKey: openai_key });
         this.botPrompt = botPrompt;
-        this.commandChance = commandChance; // Chance for command execution
+        this.chatBotPrompt = chatBotPrompt;
+        this.commandChance = commandChance;
         this.commandCooldowns = new Map();
         this.randomCooldowns = new Map();
+
+        console.log("OpenAIOperations initialized with the following settings:");
+        console.log(`API Key: ${openai_key}`);
+        console.log(`Model Name: ${model_name}`);
+        console.log(`History Length: ${history_length}`);
+        console.log(`Random Chance: ${randomChance}`);
+        console.log(`Twitch User: ${twitchUser}`);
+        console.log(`Link: ${link}`);
+        console.log(`Command Chance: ${commandChance}`);
+        console.log(`Bot Prompt: ${botPrompt}`);
+        console.log(`Chat Bot Prompt: ${chatBotPrompt}`);
+        console.log(`Cooldown Period: ${cooldownPeriod}`);
     }
 
     check_history_length() {
@@ -33,6 +46,7 @@ class OpenAIOperations {
         }
 
         const randomChance = Math.floor(Math.random() * 100);
+        console.log(`Random chance: ${randomChance}, Threshold: ${this.randomChance}`);
         if (randomChance < this.randomChance && !text.startsWith("!") && !text.startsWith("/") && user.username !== this.twitchUser) {
             this.randomCooldowns.set(user.username, Date.now());
             const prompt = `${this.botPrompt}\nUser: ${text}\nAssistant:`;
@@ -52,7 +66,7 @@ class OpenAIOperations {
 
         if (currentTime - this.lastCalled < this.cooldownPeriod) {
             console.log("Cooldown in effect. Try again later.");
-            return null;  // Prevent output during cooldown
+            return null;
         }
         this.lastCalled = currentTime;
 
@@ -73,6 +87,22 @@ class OpenAIOperations {
 
             if (response.choices && response.choices.length > 0) {
                 let agent_response = response.choices[0].message.content;
+
+                // Kurallara uygunluğu kontrol et
+                if (agent_response.includes('#')) {
+                    console.log("Response contains # character, modifying response.");
+                    agent_response = agent_response.replace(/#/g, '');
+                }
+                if (agent_response.length > 500) {
+                    console.log("Response exceeds 500 characters, trimming response.");
+                    agent_response = agent_response.substring(0, 497) + '...';
+                }
+
+                if (!this.validate_response(agent_response)) {
+                    console.log("Response did not match the prompt guidelines. Retrying...");
+                    return this.make_openai_call(prompt); // Yeniden deneme
+                }
+
                 this.messages.push({ role: "assistant", content: agent_response });
                 console.log(`Agent Response: ${agent_response}`);
                 return agent_response;
@@ -83,6 +113,14 @@ class OpenAIOperations {
             console.error("Error in make_openai_call:", error);
             return "Sorry, something went wrong. Please try again later.";
         }
+    }
+
+    validate_response(response) {
+        // Response validasyonu için kurallar
+        if (response.length > 500) return false;
+        if (response.includes('#')) return false;
+        if (!this.botPrompt.includes(response)) return false;
+        return true;
     }
 
     async make_timed_message() {
@@ -101,6 +139,7 @@ class OpenAIOperations {
 
             if (response.choices && response.choices.length > 0) {
                 let agent_response = response.choices[0].message.content;
+                agent_response += ` ${this.link}`; // Ensure the link is added
                 console.log(`Timed Message Response: ${agent_response}`);
                 return agent_response;
             } else {
@@ -123,9 +162,10 @@ class OpenAIOperations {
         }
 
         const commandChance = Math.floor(Math.random() * 100);
+        console.log(`Command chance: ${commandChance}, Threshold: ${this.commandChance}`);
         if (commandChance < this.commandChance) {
             this.commandCooldowns.set(user.username, Date.now());
-            const prompt = `${this.botPrompt}\nUser: ${text}\nAssistant:`;
+            const prompt = `${this.chatBotPrompt}\nUser: ${text}\nAssistant:`;
             return await this.make_openai_call(prompt);
         } else {
             console.log("Command not executed due to chance setting.");
