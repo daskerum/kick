@@ -98,11 +98,6 @@ class OpenAIOperations {
                     agent_response = agent_response.substring(0, 497) + '...';
                 }
 
-                if (!this.validate_response(agent_response)) {
-                    console.log("Response did not match the prompt guidelines. Retrying...");
-                    return this.make_openai_call(prompt); // Yeniden deneme
-                }
-
                 this.messages.push({ role: "assistant", content: agent_response });
                 console.log(`Agent Response: ${agent_response}`);
                 return agent_response;
@@ -113,14 +108,6 @@ class OpenAIOperations {
             console.error("Error in make_openai_call:", error);
             return "Sorry, something went wrong. Please try again later.";
         }
-    }
-
-    validate_response(response) {
-        // Response validasyonu için kurallar
-        if (response.length > 500) return false;
-        if (response.includes('#')) return false;
-        if (!this.botPrompt.includes(response)) return false;
-        return true;
     }
 
     async make_timed_message() {
